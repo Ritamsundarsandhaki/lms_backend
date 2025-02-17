@@ -2,32 +2,36 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
 import adminRouter from "./routes/admin.routes.js";
 import librarianRouter from "./routes/librarian.routes.js";
 import studentRouter from "./routes/student.routes.js";
-import Admin from "./models/admin.model.js"; // Import Admin model
+import Admin from "./models/admin.model.js"; 
 
 dotenv.config({ path: "./src/.env" });
 
 const app = express();
 
 // ✅ Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
+let frontend = process.env.FRONTEND_URL;
+console.log("Allowed Frontend:", frontend);
 
-let frontend = process.env.FRONTEND_URL
-console.log(frontend)
 app.use(
   cors({
     origin: frontend,
     credentials: true,
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type,Authorization",
   })
 );
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+
+// ✅ Handle Preflight Requests
+app.options("*", cors());
 
 // ✅ Routes
 app.get("/", (req, res) => {
@@ -46,7 +50,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Function to create a dummy admin if none exists
+// ✅ Create Dummy Admin (if needed)
 const createDummyAdmin = async () => {
   try {
     const existingAdmin = await Admin.findOne({ email: "admin@example.com" });
@@ -55,7 +59,7 @@ const createDummyAdmin = async () => {
       const newAdmin = new Admin({
         fullName: "Super Admin",
         email: "admin@example.com",
-        password: "admin123", // This will be hashed automatically
+        password: "admin123", 
       });
 
       await newAdmin.save();
@@ -72,6 +76,6 @@ const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, async () => {
   console.log(`🚀 Server Started on port ${PORT}`);
-  await connectDB(); // Ensure DB is connected first
-  await createDummyAdmin(); // Create a dummy admin if needed
+  await connectDB();
+  await createDummyAdmin();
 });
