@@ -34,7 +34,7 @@ export const studentLogin = async (req, res) => {
     res.cookie("jwt", token, {
         maxAge: 3 * 24 * 60 * 60 * 1000,
         httpOnly: true, //prevent XSS attack (Cross Site Scripting)
-        sameSite: "strict", // CSRF attack Cross Site request Forgery attack
+        sameSite: "none", // CSRF attack Cross Site request Forgery attack
         secure: process.env.NODE_MODE !== "development",
       });
     res.status(200).json({ success: true, message: "Login successful",type:"student" ,token });
